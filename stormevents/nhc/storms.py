@@ -1,8 +1,11 @@
+import cache
 import re
 from collections.abc import Iterable
 from datetime import datetime
 from functools import lru_cache
 
+import os
+import urllib
 import numpy
 import pandas
 import requests
@@ -221,10 +224,18 @@ def nhc_storms_gis_archive(year: int = None) -> pandas.DataFrame:
         year = int(year)
 
     url = "http://www.nhc.noaa.gov/gis/archive_wsurge.php"
-    response = requests.get(url, params={"year": year})
-    if not response.ok:
-        response.raise_for_status()
-    soup = BeautifulSoup(response.content, features="html.parser")
+    if False:
+        response = requests.get(url, params={"year": year})
+        if not response.ok:
+            response.raise_for_status()
+        soup = BeautifulSoup(response.content, features="html.parser")
+    data = urllib.parse.urlencode({"year":year}).encode('ascii')
+    req = urllib.request.Request(url, data)
+    opener = urllib.request.build_opener(cache.CacheHandler(os.path.join(os.getenv("TMPDIR"), ".urllib2cache")))
+    with opener.open(req, data) as response:
+        assert response.msg == 'OK', response.msg
+        soup = BeautifulSoup(response.read(), features="html.parser")
+
     table = soup.find("table")
 
     rows = []
