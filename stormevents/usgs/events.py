@@ -1,6 +1,5 @@
 import re
 from datetime import datetime
-from functools import lru_cache
 from os import PathLike
 from typing import List
 
@@ -20,7 +19,6 @@ from stormevents.usgs.sensors import usgs_files
 from stormevents.usgs.sensors import usgs_sensors
 
 
-@lru_cache(maxsize=None)
 def usgs_flood_events(
     year: int = None,
     event_type: EventType = None,
@@ -114,7 +112,6 @@ def usgs_flood_events(
     return events
 
 
-@lru_cache(maxsize=None)
 def usgs_flood_storms(year: int = None) -> DataFrame:
     """
     this function collects USGS high-water mark data for storm events and cross-correlates it with NHC storm data

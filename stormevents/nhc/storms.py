@@ -2,7 +2,6 @@ import cache
 import re
 from collections.abc import Iterable
 from datetime import datetime
-from functools import lru_cache
 
 import os
 import urllib
@@ -13,8 +12,8 @@ from bs4 import BeautifulSoup
 
 NHC_GIS_ARCHIVE_START_YEAR = 2008
 
+opener = urllib.request.build_opener(cache.CacheHandler(os.path.join(os.getenv("TMPDIR"), ".urllib2cache")))
 
-@lru_cache(maxsize=None)
 def nhc_storms(year: int = None) -> pandas.DataFrame:
     """
     retrieve a list of hurricanes from NHC since 1851
@@ -64,15 +63,18 @@ def nhc_storms(year: int = None) -> pandas.DataFrame:
         19,
         "nhc_code",
     ]
-    storms = pandas.read_csv(
-        url,
-        header=0,
-        names=columns,
-        parse_dates=["start_date", "end_date"],
-        date_parser=lambda x: pandas.to_datetime(x.strip(), format="%Y%m%d%H")
-        if x.strip() != "9999999999"
-        else numpy.nan,
-    )
+    req = urllib.request.Request(url)
+    with opener.open(req) as response:
+        assert response.msg == 'OK', response.msg
+        storms = pandas.read_csv(
+            response,
+            header=0,
+            names=columns,
+            parse_dates=["start_date", "end_date"],
+            date_parser=lambda x: pandas.to_datetime(x.strip(), format="%Y%m%d%H")
+            if x.strip() != "9999999999"
+            else numpy.nan,
+        )
 
     storms = storms.astype(
         {"start_date": "datetime64[s]", "end_date": "datetime64[s]"},
@@ -120,7 +122,6 @@ def nhc_storms(year: int = None) -> pandas.DataFrame:
     return storms
 
 
-@lru_cache(maxsize=None)
 def nhc_storms_archive(year: int = None) -> pandas.DataFrame:
     url = "https://ftp.nhc.noaa.gov/atcf/archive/storm.table"
 
@@ -148,7 +149,10 @@ def nhc_storms_archive(year: int = None) -> pandas.DataFrame:
         "nhc_code",
     ]
 
-    storms = pandas.read_csv(url, header=0, names=columns)
+    req = urllib.request.Request(url)
+    with opener.open(req) as response:
+        assert response.msg == 'OK', response.msg
+        storms = pandas.read_csv(response, header=0, names=columns)
 
     storms = storms[
         [
@@ -183,7 +187,6 @@ def nhc_storms_archive(year: int = None) -> pandas.DataFrame:
     return storms
 
 
-@lru_cache(maxsize=None)
 def nhc_storms_gis_archive(year: int = None) -> pandas.DataFrame:
     """
     retrieve list of hurricanes from GIS archive since 2008
@@ -224,14 +227,8 @@ def nhc_storms_gis_archive(year: int = None) -> pandas.DataFrame:
         year = int(year)
 
     url = "http://www.nhc.noaa.gov/gis/archive_wsurge.php"
-    if False:
-        response = requests.get(url, params={"year": year})
-        if not response.ok:
-            response.raise_for_status()
-        soup = BeautifulSoup(response.content, features="html.parser")
     data = urllib.parse.urlencode({"year":year}).encode('ascii')
     req = urllib.request.Request(url, data)
-    opener = urllib.request.build_opener(cache.CacheHandler(os.path.join(os.getenv("TMPDIR"), ".urllib2cache")))
     with opener.open(req, data) as response:
         assert response.msg == 'OK', response.msg
         soup = BeautifulSoup(response.read(), features="html.parser")

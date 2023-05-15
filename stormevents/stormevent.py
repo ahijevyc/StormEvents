@@ -1,7 +1,6 @@
 from datetime import datetime
 from datetime import timedelta
 from enum import Enum
-from functools import lru_cache
 from os import PathLike
 from typing import List
 
@@ -227,7 +226,6 @@ class StormEvent:
         self.__start_date = start_date
 
     @property
-    @lru_cache(maxsize=None)
     def __data_start(self) -> datetime:
         data_start = self.__entry["start_date"]
         if pandas.isna(data_start):
@@ -252,7 +250,6 @@ class StormEvent:
         self.__end_date = end_date
 
     @property
-    @lru_cache(maxsize=None)
     def __data_end(self) -> datetime:
         data_end = self.__entry["end_date"]
         if pandas.isna(data_end):
