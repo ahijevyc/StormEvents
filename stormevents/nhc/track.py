@@ -1154,7 +1154,7 @@ def separate_tracks(data: DataFrame) -> Dict[str, Dict[str, DataFrame]]:
                 track_data = advisory_data[
                     advisory_data["track_start_time"]
                     == pandas.to_datetime(track_start_time)
-                ].sort_values("forecast_hours")
+                ] # .sort_values(["forecast_hours","isotach_radius"]) # if you decide you must sort (I don't think you do), at least sort forecast_hours AND isotach_radius or else isotach radius will sometimes get out of order
 
             tracks[advisory][
                 f"{pandas.to_datetime(track_start_time):%Y%m%dT%H%M%S}"
