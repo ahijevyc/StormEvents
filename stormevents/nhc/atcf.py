@@ -217,6 +217,7 @@ class ATCF_Advisory(Enum):
     HMON = "HMON"
     CARQ = "CARQ"
     HWRF = "HWRF"
+    EE = "EE"
 
 
 def get_atcf_entry(
@@ -384,7 +385,7 @@ def read_atcf(
             pass
 
     if advisories is not None and len(advisories) > 0:
-        data = data[data["TECH"].isin(advisories)]
+        data = data[data["TECH"].isin(advisories) | data["TECH"].str.startswith(advisories[0])]
         if len(data) == 0:
             raise ValueError(f'no ATCF records found matching "{advisories}"')
 
