@@ -1003,12 +1003,12 @@ class VortexTrack:
                     .iloc[0]
                 )
 
+            dataframe["forecast_hours"] = dataframe["forecast_hours"].astype(int)
+
             dataframe.loc[
                 dataframe["advisory"] != "BEST", "datetime"
             ] += pandas.to_timedelta(
-                dataframe.loc[dataframe["advisory"] != "BEST", "forecast_hours"].astype(
-                    int
-                ),
+                dataframe.loc[dataframe["advisory"] != "BEST", "forecast_hours"],
                 unit="hours",
             )
 
